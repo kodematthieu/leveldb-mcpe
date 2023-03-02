@@ -1,9 +1,9 @@
-build_config.mk
-*.a
-*.o
-*.dylib*
-*.so
-*.so.*
-*_test
-db_bench
 leveldbutil
+libleveldb.a
+libleveldb.so
+libleveldb.so.*
+*.cmake
+CMakeCache.txt
+Makefile
+cmake/*.cmake
+CMakeFiles/

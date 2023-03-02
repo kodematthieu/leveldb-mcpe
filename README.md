@@ -24,6 +24,46 @@ Authors: Sanjay Ghemawat (sanjay@google.com) and Jeff Dean (jeff@google.com)
   * Only a single process (possibly multi-threaded) can access a particular database at a time.
   * There is no client-server support builtin to the library.  An application that needs such support will have to wrap their own server around the library.
 
+# Getting the Source
+```bash
+git clone --recurse-submodules https://github.com/kodematthieu/leveldb-mcpe.git
+```
+
+# Building
+This project supports [CMake](https://cmake.org/) out of the box.
+
+### Build for POSIX
+Quick start:
+
+```bash
+mkdir -p build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
+```
+
+### Building for Windows
+First generate the Visual Studio 2017 project/solution files:
+
+```cmd
+mkdir build
+cd build
+cmake -G "Visual Studio 15" ..
+```
+The default default will build for x86. For 64-bit run:
+
+```cmd
+cmake -G "Visual Studio 15 Win64" ..
+```
+
+To compile the Windows solution from the command-line:
+
+```cmd
+devenv /build Debug leveldb.sln
+```
+
+or open leveldb.sln in Visual Studio and build from within.
+
+Please see the CMake documentation and `CMakeLists.txt` for more advanced usage.
+
 # Contributing to the leveldb Project
 The leveldb project welcomes contributions. leveldb's primary goal is to be
 a reliable and fast key/value store. Changes that are in line with the
