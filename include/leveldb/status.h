@@ -62,6 +62,15 @@ class DLLX Status {
 	  return (state_ == NULL) ? kOk : static_cast<Code>(state_[4]);
   }
 
+  std::string message() {
+    if(state_ == NULL) return "";
+    else {
+      uint32_t len;
+      memcpy(&len, state_, sizeof(len));
+      return std::string(state_ + 5, len);
+    }
+  }
+
   // Returns true iff the status indicates success.
   bool ok() const { return (state_ == NULL); }
 
