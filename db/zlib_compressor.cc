@@ -7,6 +7,14 @@
 
 namespace leveldb {
 
+	ZlibCompressorBase::ZlibCompressorBase(char uniqueCompressionID, int compressionLevel, bool raw) :
+		Compressor(uniqueCompressionID),
+		compressionLevel(compressionLevel),
+		raw(raw)
+	{
+		assert(compressionLevel >= -1 && compressionLevel <= 9);
+	}
+
 	void ZlibCompressorBase::compressImpl(const char* input, size_t length, ::std::string& buffer) const
 	{
 		const size_t BUFSIZE = 128 * 1024;
@@ -117,6 +125,11 @@ namespace leveldb {
 		return raw ? -15 : 15;
 	}
 
+	ZlibCompressor::ZlibCompressor(int compressionLevel) :
+		ZlibCompressorBase(SERIALIZE_ID, compressionLevel, false) {}
+
+	ZlibCompressorRaw::ZlibCompressorRaw(int compressionLevel) :
+		ZlibCompressorBase(SERIALIZE_ID, compressionLevel, true) {}
 }
 
 #endif

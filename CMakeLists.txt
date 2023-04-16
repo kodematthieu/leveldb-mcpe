@@ -22,13 +22,13 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif(NOT CMAKE_CXX_STANDARD)
 
-if (WIN32)
+if(WIN32)
   set(LEVELDB_PLATFORM_NAME LEVELDB_PLATFORM_WINDOWS)
   # TODO(cmumford): Make UNICODE configurable for Windows.
   add_definitions(-D_UNICODE -DUNICODE)
-else (WIN32)
+else(WIN32)
   set(LEVELDB_PLATFORM_NAME LEVELDB_PLATFORM_POSIX)
-endif (WIN32)
+endif()
 
 option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 option(LEVELDB_BUILD_BENCHMARKS "Build LevelDB's benchmarks" ON)
@@ -54,8 +54,6 @@ include(CheckCXXSymbolExists)
 check_cxx_symbol_exists(fdatasync "unistd.h" HAVE_FDATASYNC)
 check_cxx_symbol_exists(F_FULLFSYNC "fcntl.h" HAVE_FULLFSYNC)
 check_cxx_symbol_exists(O_CLOEXEC "fcntl.h" HAVE_O_CLOEXEC)
-
-set(CMAKE_CXX_FLAGS "-DDLLX= ${CMAKE_CXX_FLAGS}")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   # Disable C++ exceptions.
@@ -103,10 +101,7 @@ int main() { std::string str; return 0; }
 set(LEVELDB_PUBLIC_INCLUDE_DIR "include/leveldb")
 set(LEVELDB_PORT_CONFIG_DIR "include/port")
 
-include_directories(
-  "${PROJECT_BINARY_DIR}/include"
-  "."
-)
+include_directories("${PROJECT_BINARY_DIR}/include" ".")
 
 # Must be included before CMAKE_INSTALL_INCLUDEDIR is used.
 include(GNUInstallDirs)
@@ -158,8 +153,6 @@ target_sources(leveldb
     "util/logging.cc"
     "util/options.cc"
     "util/status.cc"
-    "util/win_logger.cc"
-    "port/port_posix.cc"
     "port/port_posix_sse.cc"
 
   # Only CMake 3.3+ supports PUBLIC sources in targets exported by "install".
@@ -184,25 +177,43 @@ target_sources(leveldb
     "${LEVELDB_PUBLIC_INCLUDE_DIR}/write_batch.h"
 )
 
-if (WIN32)
+if(WIN32)
+  target_sources(leveldb PRIVATE
+    "port/port_win.cc"
+    "util/env_win.cc"
+    "util/win_logger.cc"
+  )
+  add_definitions(-DLEVELDB_PLATFORM_WINDOWS "-DDLLX=__declspec(dllexport)")
+else(WIN32)
+  target_sources(leveldb PRIVATE
+    "port/port_posix.cc"
+    "util/env_posix.cc"
+  )
+
+  add_definitions(-DLEVELDB_PLATFORM_POSIX "-DDLLX=")
+  if(APPLE)
+      add_definitions(-DOS_MACOSX)
+  endif()
+endif()
+
+if(WIN32)
   target_sources(leveldb
     PRIVATE
       "util/env_windows.cc"
       "util/windows_logger.h"
   )
-else (WIN32)
+else(WIN32)
   target_sources(leveldb
     PRIVATE
       "util/env_posix.cc"
       "util/posix_logger.h"
   )
-endif (WIN32)
+endif(WIN32)
 
 # MemEnv is not part of the interface and could be pulled to a separate library.
-target_sources(leveldb
-  PRIVATE
-    "helpers/memenv/memenv.cc"
-    "helpers/memenv/memenv.h"
+target_sources(leveldb PRIVATE
+  "helpers/memenv/memenv.cc"
+  "helpers/memenv/memenv.h"
 )
 
 target_include_directories(leveldb
@@ -248,9 +259,7 @@ target_link_libraries(leveldb Threads::Threads)
 find_package(ZLIB REQUIRED)
 target_link_libraries(leveldb ZLIB::ZLIB)
 
-add_executable(leveldbutil
-  "db/leveldbutil.cc"
-)
+add_executable(leveldbutil "db/leveldbutil.cc")
 target_link_libraries(leveldbutil leveldb)
 
 
@@ -266,6 +275,7 @@ if(LEVELDB_INSTALL)
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/c.h"
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/cache.h"
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/comparator.h"
+      "${LEVELDB_PUBLIC_INCLUDE_DIR}/compressor.h"
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/db.h"
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/dumpfile.h"
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/env.h"
@@ -277,6 +287,7 @@ if(LEVELDB_INSTALL)
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/table_builder.h"
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/table.h"
       "${LEVELDB_PUBLIC_INCLUDE_DIR}/write_batch.h"
+      "${LEVELDB_PUBLIC_INCLUDE_DIR}/zlib_compressor.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/leveldb"
   )
 
